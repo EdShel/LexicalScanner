@@ -8,19 +8,28 @@ if (!File.Exists(inputFile))
 }
 string input = File.ReadAllText(inputFile);
 
+var presentationRegex = new Regex(@"((terminator|blockBegin|blockEnd)\([^ ]+\)) ?");
+
 try
 {
-    IEnumerable<Token> parsedTokens = new Scanner(input).Scan();
-    IEnumerable<Token> parsedTokens2 = new ScannerRegex(input).Scan();
-
-    var presentationRegex = new Regex(@"((terminator|blockBegin|blockEnd)\([^ ]+\)) ?");
-    Console.WriteLine(presentationRegex.Replace(
-        string.Join(" ", parsedTokens.Select(t => $"{t.Kind}({t.Value})")), "$1\n"));
-
-    Console.WriteLine();
+    Console.WriteLine("Regex:");
+    IEnumerable<Token> parsedTokensRegex = new ScannerRegex(input).Scan();
 
     Console.WriteLine(presentationRegex.Replace(
-        string.Join(" ", parsedTokens2.Select(t => $"{t.Kind}({t.Value})")), "$1\n"));
+        string.Join(" ", parsedTokensRegex.Select(t => $"{t.Kind}({t.Value})")), "$1\n"));
+}
+catch (InvalidOperationException ex)
+{
+    Console.Error.Write(ex.Message);
+}
+
+try
+{
+    Console.WriteLine("\nFSM:");
+    IEnumerable<Token> parsedTokensFsm = new ScannerFsm(input).Scan();
+
+    Console.WriteLine(presentationRegex.Replace(
+        string.Join(" ", parsedTokensFsm.Select(t => $"{t.Kind}({t.Value})")), "$1\n"));
 }
 catch (InvalidOperationException ex)
 {
